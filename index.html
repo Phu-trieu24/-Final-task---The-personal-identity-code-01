@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Personal Identity Number Checker</title>
+    </head>
+    <body>
+        <h1>Personal Identity Number Checker</h1>
+        <form id="pidForm">
+            <label for="pid"><b>Enter Personal Identity Number:</b></label>
+            <input
+                type="text"
+                id="pid"
+                name="pid"
+                required
+                pattern="[0-9]{6}-[0-9]{3}[0-9A-FHJ-NPR-Y]"
+                placeholder="DDMMYY-XXXX"
+            />
+            <button type="button" onclick="checkPID()">Check</button>
+        </form>
+
+        <div id="result"></div>
+
+        <script>
+            function checkPID() {
+                var pidInput = document.getElementById("pid").value;
+                var resultDiv = document.getElementById("result");
+
+                // Regular expression for valid PID
+                var pidRegex =
+                    /^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])\d{2}-\d{3}[0-9A-FHJ-NPR-Y]$/;
+
+                if (!pidRegex.test(pidInput)) {
+                    resultDiv.innerHTML = "Invalid Personal Identity Number!";
+                    return;
+                }
+
+                // Extract day, month, year, and gender from PID
+                var day = parseInt(pidInput.substr(0, 2));
+                var month = parseInt(pidInput.substr(2, 2));
+                var year = parseInt(pidInput.substr(4, 2));
+                var genderCode = pidInput.charAt(9);
+
+                // Validate day and month
+                if (day < 1 || day > 31 || month < 1 || month > 12) {
+                    resultDiv.innerHTML = "Invalid day or month!";
+                    return;
+                }
+
+                // Check for valid days in each month
+                var daysInMonth = [
+                    0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+                ];
+                if (day > daysInMonth[month]) {
+                    resultDiv.innerHTML = "Invalid day for the selected month!";
+                    return;
+                }
+
+                // Check for February and leap years
+                if (month === 2 && day === 29) {
+                    if (
+                        (year % 4 === 0 && year % 100 !== 0) ||
+                        year % 400 === 0
+                    ) {
+                        // Leap year, February can have 29 days
+                    } else {
+                        resultDiv.innerHTML = "Invalid day for February!";
+                        return;
+                    }
+                }
+
+                // Determine age
+                var currentYear = new Date().getFullYear();
+                var century =
+                    year <= currentYear % 100
+                        ? Math.floor(currentYear / 100) * 100
+                        : (Math.floor(currentYear / 100) - 1) * 100;
+                var fullYear = century + year;
+
+                var age = currentYear - fullYear;
+
+                // Calculate the birthdate
+                var birthdate = new Date(fullYear, month - 1, day);
+                var currentDate = new Date();
+
+                // Calculate the difference in years, months, and days
+                var ageYears =
+                    currentDate.getFullYear() - birthdate.getFullYear();
+                var ageMonths = currentDate.getMonth() - birthdate.getMonth();
+                var ageDays = currentDate.getDate() - birthdate.getDate();
+
+                if (ageDays < 0) {
+                    ageMonths--;
+                    ageDays += new Date(
+                        currentDate.getFullYear(),
+                        currentDate.getMonth(),
+                        0
+                    ).getDate();
+                }
+
+                // Output the result
+                resultDiv.innerHTML = "<br/> * Is valid: true<br>";
+                resultDiv.innerHTML +=
+                    " * Sex: " +
+                    (genderCode % 2 === 0 ? "Female" : "Male") +
+                    "<br>";
+                resultDiv.innerHTML += " * Age: " + age + " years<br>";
+                resultDiv.innerHTML +=
+                    " * (" +
+                    ageYears +
+                    " years " +
+                    ageMonths +
+                    " months " +
+                    ageDays +
+                    " days)";
+
+                // Output the current date
+                resultDiv.innerHTML +=
+                    " this is calculated " + currentDate.toDateString();
+            }
+        </script>
+    </body>
+</html>
